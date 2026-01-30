@@ -1,0 +1,140 @@
+import os
+import sqlite3
+import logging
+try:
+    import psycopg2
+except ImportError:
+    psycopg2 = None
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+class Database:
+    def __init__(self, db_path="zsxq_investment.db"):
+        self.db_path = db_path
+        self.db_url = os.getenv("DATABASE_URL")
+        self.use_postgres = bool(self.db_url)
+        
+        if self.use_postgres and not psycopg2:
+            logger.warning("DATABASE_URL is set but psycopg2 is not installed. Falling back to SQLite.")
+            self.use_postgres = False
+
+        self._create_table()
+
+    def _get_conn(self):
+        if self.use_postgres:
+            return psycopg2.connect(self.db_url)
+        else:
+            return sqlite3.connect(self.db_path)
+
+    def _prepare_query(self, query):
+        """Adapt query placeholders for the target database."""
+        if self.use_postgres:
+            return query.replace('?', '%s')
+        return query
+
+    def _create_table(self):
+        conn = self._get_conn()
+        try:
+            with conn: # Transaction context
+                cursor = conn.cursor()
+                query = '''
+                    CREATE TABLE IF NOT EXISTS investment_posts (
+                        id TEXT PRIMARY KEY,
+                        content TEXT,
+                        author TEXT,
+                        create_time TEXT,
+                        url TEXT,
+                        section_name TEXT,
+                        is_analyzed INTEGER DEFAULT 0,
+                        ticker TEXT,
+                        suggestion TEXT,
+                        logic TEXT,
+                        ai_summary TEXT
+                    )
+                '''
+                cursor.execute(self._prepare_query(query))
+                
+                # Migration: Add section_name column if it doesn't exist
+                # This logic is tricky across DBs. 
+                # For PG, we can check information_schema or just try/catch safely.
+                # For SQLite, pragma.
+                
+                # To keep it simple and robust:
+                try:
+                    alter_query = "ALTER TABLE investment_posts ADD COLUMN section_name TEXT"
+                    cursor.execute(self._prepare_query(alter_query))
+                    logger.info("Added section_name column to existing table")
+                except (sqlite3.OperationalError, psycopg2.errors.DuplicateColumn, psycopg2.ProgrammingError) as e:
+                    # Ignore if column exists
+                    # psycopg2 throws DuplicateColumn or ProgrammingError depending on version/context
+                    pass
+        finally:
+            conn.close()
+
+    def post_exists(self, post_id):
+        conn = self._get_conn()
+        try:
+            with conn:
+                cursor = conn.cursor()
+                query = "SELECT 1 FROM investment_posts WHERE id = ?"
+                cursor.execute(self._prepare_query(query), (post_id,))
+                return cursor.fetchone() is not None
+        finally:
+            conn.close()
+
+    def save_post(self, post_id, content, author, create_time, url, section_name=None):
+        conn = self._get_conn()
+        try:
+            with conn:
+                cursor = conn.cursor()
+                query = '''
+                    INSERT INTO investment_posts (id, content, author, create_time, url, section_name)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                '''
+                cursor.execute(self._prepare_query(query), (post_id, content, author, create_time, url, section_name))
+                return True
+        except (sqlite3.IntegrityError, psycopg2.IntegrityError):
+            return False
+        finally:
+            conn.close()
+
+    def get_unanalyzed_posts(self, limit=None):
+        """获取未分析的帖子,支持限制数量"""
+        conn = self._get_conn()
+        try:
+            with conn:
+                cursor = conn.cursor()
+                query = "SELECT id, content, url, author, create_time, section_name FROM investment_posts WHERE is_analyzed = 0 ORDER BY create_time DESC"
+                if limit:
+                    query += f" LIMIT {limit}"
+                cursor.execute(self._prepare_query(query))
+                return cursor.fetchall()
+        finally:
+            conn.close()
+    
+    def get_unanalyzed_count(self):
+        """获取未分析帖子的数量"""
+        conn = self._get_conn()
+        try:
+            with conn:
+                cursor = conn.cursor()
+                query = "SELECT COUNT(*) FROM investment_posts WHERE is_analyzed = 0"
+                cursor.execute(self._prepare_query(query))
+                return cursor.fetchone()[0]
+        finally:
+            conn.close()
+
+    def update_analysis(self, post_id, ticker, suggestion, logic, ai_summary):
+        conn = self._get_conn()
+        try:
+            with conn:
+                cursor = conn.cursor()
+                query = '''
+                    UPDATE investment_posts
+                    SET ticker = ?, suggestion = ?, logic = ?, ai_summary = ?, is_analyzed = 1
+                    WHERE id = ?
+                '''
+                cursor.execute(self._prepare_query(query), (ticker, suggestion, logic, ai_summary, post_id))
+        finally:
+            conn.close()

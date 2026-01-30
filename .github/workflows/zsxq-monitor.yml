@@ -1,0 +1,40 @@
+name: ZSXQ Monitor
+on:
+  schedule:
+    - cron: '*/10 * * * *'  # 每10分钟运行
+  workflow_dispatch:
+
+jobs:
+  crawl-and-analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          cd xingqiu
+          pip install -r requirements.txt
+      
+      - name: Run crawler (auto-triggers analysis)
+        run: |
+          cd xingqiu
+          python crawl.py
+        env:
+          ZSXQ_COOKIE: ${{ secrets.ZSXQ_COOKIE }}
+          AUTO_ANALYZE_AFTER_CRAWL: 'true'
+          AI_PROVIDER: ${{ secrets.AI_PROVIDER }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: ${{ secrets.GEMINI_MODEL }}
+          MAX_POSTS_PER_RUN: '10'
+          AI_REQUESTS_PER_MINUTE: '15'
+          DINGTALK_WEBHOOK: ${{ secrets.DINGTALK_WEBHOOK }}
+          DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      
+      - name: Commit database changes
+

@@ -1,0 +1,37 @@
+name: AI Analysis Only
+on:
+  workflow_dispatch:  # 仅手动触发
+  schedule:
+    - cron: '0 2 * * *'  # 可选: 每天凌晨2点额外运行一次
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          cd xingqiu
+          pip install -r requirements.txt
+      
+      - name: Run AI analysis
+        run: |
+          cd xingqiu
+          python analyze.py
+        env:
+          AI_PROVIDER: ${{ secrets.AI_PROVIDER }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: ${{ secrets.GEMINI_MODEL }}
+          MAX_POSTS_PER_RUN: '20'  # 手动运行时可以处理更多
+          AI_REQUESTS_PER_MINUTE: '15'
+          DINGTALK_WEBHOOK: ${{ secrets.DINGTALK_WEBHOOK }}
+          DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      
+
