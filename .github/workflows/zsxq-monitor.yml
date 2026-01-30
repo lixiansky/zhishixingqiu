@@ -36,5 +36,4 @@ jobs:
           DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
       
-      - name: Commit database changes
 
