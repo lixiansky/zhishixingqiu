@@ -41,6 +41,24 @@ class ZsxqCrawler:
             logger.error(f"Error fetching {url}: {e}")
             return None
 
+    def _extract_comments(self, topic):
+        """提取帖子的回复信息"""
+        # 尝试多个可能的字段名
+        comments = topic.get('comments', []) or topic.get('show_comments', []) or topic.get('latest_comments', [])
+        if not comments:
+            return ""
+        
+        comment_texts = []
+        for comment in comments:
+            text = comment.get('text', '')
+            author = comment.get('owner', {}).get('name', 'Unknown')
+            if text:
+                comment_texts.append(f"【{author}】: {text}")
+        
+        if comment_texts:
+            return "\n\n--- 回复 ---\n" + "\n".join(comment_texts)
+        return ""
+
     def get_group_topics(self, group_id, scope='all'):
         """
         scope: 'all' or 'digests'
@@ -69,10 +87,14 @@ class ZsxqCrawler:
             if not content:
                 article = t.get('article', {})
                 content = f"{article.get('title', '')} {article.get('text', '')}"
+            
+            # Extract and append comments
+            comments_text = self._extract_comments(t)
+            full_content = content.strip() + comments_text
                 
             results.append({
                 'id': str(topic_id),
-                'content': content.strip(),
+                'content': full_content,
                 'author': author,
                 'create_time': create_time,
                 'url': url_link,
@@ -110,10 +132,14 @@ class ZsxqCrawler:
                     question = q_and_a.get('question', {}).get('text', '')
                     answer = q_and_a.get('answer', {}).get('text', '')
                     content = f"[问答]\n问：{question}\n答：{answer}"
+            
+            # Extract and append comments
+            comments_text = self._extract_comments(t)
+            full_content = content.strip() + comments_text
 
             results.append({
                 'id': str(topic_id),
-                'content': content.strip(),
+                'content': full_content,
                 'author': author,
                 'create_time': create_time,
                 'url': url_link,
@@ -186,9 +212,13 @@ class ZsxqCrawler:
             
             content = f"[问答]\n问：{question}\n答：{answer}"
             
+            # Extract and append comments
+            comments_text = self._extract_comments(t)
+            full_content = content.strip() + comments_text
+            
             results.append({
                 'id': str(topic_id),
-                'content': content.strip(),
+                'content': full_content,
                 'author': author,
                 'create_time': create_time,
                 'url': url_link,
