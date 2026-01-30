@@ -42,6 +42,7 @@ def main():
     ai_provider = os.getenv("AI_PROVIDER", "openai")
     gemini_key = os.getenv("GEMINI_API_KEY")
     gemini_model = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+    star_owner_name = os.getenv("STAR_OWNER_NAME", "pure日月")
     
     ding_url = os.getenv("DINGTALK_WEBHOOK")
     ding_secret = os.getenv("DINGTALK_SECRET")
@@ -57,7 +58,8 @@ def main():
         ai_base_url, 
         provider=ai_provider, 
         gemini_key=gemini_key, 
-        gemini_model=gemini_model
+        gemini_model=gemini_model,
+        star_owner_name=star_owner_name
     )
     notifier = Notifier(ding_url, ding_secret)
     rate_limiter = RateLimiter(requests_per_minute=requests_per_minute)

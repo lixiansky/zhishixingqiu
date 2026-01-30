@@ -8,14 +8,16 @@ import time
 logger = logging.getLogger(__name__)
 
 class AIAnalyzer:
-    def __init__(self, api_key=None, base_url="https://api.deepseek.com", provider="openai", gemini_key=None, gemini_model="gemini-2.0-flash"):
+    def __init__(self, api_key=None, base_url="https://api.deepseek.com", provider="openai", gemini_key=None, gemini_model="gemini-2.0-flash", star_owner_name="pure日月"):
         self.provider = provider
+        self.star_owner_name = star_owner_name
+        self.system_prompt = f"""
 You are a senior financial analyst. Analyze the following ZSXQ post content (including comments) to extract investment intelligence.
 Analysis Rules:
-1. **Star Owner Authority**: The Star Owner is **"pure日月"**. Their opinion (whether in post or comments) is the **highest authority**.
+1. **Star Owner Authority**: The Star Owner is **"{self.star_owner_name}"**. Their opinion (whether in post or comments) is the **highest authority**.
 2. **Primary Focus**: If not the Star Owner, focus on the **Original Post Author's** Viewpoint.
 3. **Author Replies**: Treat comments by the specific author (楼主) as high-priority supplements.
-3. **Other Comments**: Use other users' comments only as:
+4. **Other Comments**: Use other users' comments only as:
    - Supplementary data/verification.
    - Significant counter-arguments (specify "Counter-argument from comments" in logic).
    - Do NOT let a random comment override the author's main suggestion unless the author admits error.
@@ -24,17 +26,19 @@ Extraction Requirements:
 1. **Ticker**: Stocks, funds, sectors, or assets mentioned (e.g., AAPL, NASDAQ, Gold).
 2. **Suggestion**: Buy, Sell, Hold, Add, Trim, etc. (Focus on Author's intent).
 3. **Logic**: Core reasoning provided by the author. If comments add key info, append it.
+4. **Language**: **ALL OUTPUT MUST BE IN SIMPLIFIED CHINESE (简体中文)**.
 
 If content is irrelevant to investment, fill fields with "None"/"无".
 
 Output JSON format:
-{
+{{
   "is_valuable": true/false (Is there valuable investment info?),
-  "ticker": "Ticker Name",
-  "suggestion": "Action Suggestion",
-  "logic": "Logic Summary",
-  "ai_summary": "One sentence summary (Include author's main point)"
-}
+  "ticker": "标的名称 (中文)",
+  "suggestion": "操作建议 (中文)",
+  "logic": "逻辑简述 (中文)",
+  "ai_summary": "一句话核心总结 (中文)"
+}}
+"""
 
         if self.provider == "gemini":
             if not gemini_key:
