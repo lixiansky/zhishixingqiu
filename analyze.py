@@ -66,14 +66,16 @@ def main():
     
     # 获取未分析帖子数量
     total_unanalyzed = db.get_unanalyzed_count()
-    logger.info(f"Total unanalyzed posts: {total_unanalyzed}")
+    logger.info(f"DEBUG: Total unanalyzed posts returned by DB: {total_unanalyzed}")
     
     if total_unanalyzed == 0:
         logger.info("No posts to analyze. Exiting.")
         return 0
     
     # 获取本次要分析的帖子(限制数量)
+    logger.info(f"DEBUG: Attempting to fetch max {max_posts_per_run} posts...")
     unanalyzed = db.get_unanalyzed_posts(limit=max_posts_per_run)
+    logger.info(f"DEBUG: Fetched {len(unanalyzed)} posts for analysis.")
     logger.info(f"Analyzing {len(unanalyzed)} posts (max: {max_posts_per_run})...")
     
     # 逐个分析

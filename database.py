@@ -107,13 +107,12 @@ class Database:
         """获取未分析的帖子,支持限制数量"""
         conn = self._get_conn()
         try:
-            with conn:
-                cursor = conn.cursor()
-                query = "SELECT id, content, url, author, create_time, section_name FROM investment_posts WHERE is_analyzed = 0 ORDER BY create_time DESC"
-                if limit:
-                    query += f" LIMIT {limit}"
-                cursor.execute(self._prepare_query(query))
-                return cursor.fetchall()
+            cursor = conn.cursor()
+            query = "SELECT id, content, url, author, create_time, section_name FROM investment_posts WHERE is_analyzed = 0 ORDER BY create_time DESC"
+            if limit:
+                query += f" LIMIT {limit}"
+            cursor.execute(self._prepare_query(query))
+            return cursor.fetchall()
         finally:
             conn.close()
     
@@ -121,11 +120,10 @@ class Database:
         """获取未分析帖子的数量"""
         conn = self._get_conn()
         try:
-            with conn:
-                cursor = conn.cursor()
-                query = "SELECT COUNT(*) FROM investment_posts WHERE is_analyzed = 0"
-                cursor.execute(self._prepare_query(query))
-                return cursor.fetchone()[0]
+            cursor = conn.cursor()
+            query = "SELECT COUNT(*) FROM investment_posts WHERE is_analyzed = 0"
+            cursor.execute(self._prepare_query(query))
+            return cursor.fetchone()[0]
         finally:
             conn.close()
 

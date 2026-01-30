@@ -27,6 +27,8 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_MODEL: ${{ secrets.GEMINI_MODEL }}
           MAX_POSTS_PER_RUN: '20'  # 手动运行时可以处理更多
+          AI_REQUESTS_PER_MINUTE: '10'
+          STAR_OWNER_NAME: ${{ secrets.STAR_OWNER_NAME }} # Optional, defaults to pure日月
           AI_REQUESTS_PER_MINUTE: '15'
           DINGTALK_WEBHOOK: ${{ secrets.DINGTALK_WEBHOOK }}
           DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
