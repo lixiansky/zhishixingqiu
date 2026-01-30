@@ -17,12 +17,10 @@ jobs:
       
       - name: Install dependencies
         run: |
-          cd xingqiu
           pip install -r requirements.txt
       
       - name: Run AI analysis
         run: |
-          cd xingqiu
           python analyze.py
         env:
           AI_PROVIDER: ${{ secrets.AI_PROVIDER }}
