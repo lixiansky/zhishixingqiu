@@ -4,6 +4,7 @@ import logging
 import re
 import os
 import time
+import socket
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +41,9 @@ Output JSON format:
 }}
 """
 
+        # Network connectivity check
+        self._check_network_connectivity()
+        
         if self.provider == "gemini":
             if not gemini_key:
                 logger.error("Gemini provider selected but GEMINI_API_KEY is missing.")
@@ -51,9 +55,11 @@ Output JSON format:
                 self.gemini_model = gemini_model
                 self.types = types
                 logger.info(f"Gemini client initialized with model: {self.gemini_model}")
+                logger.info(f"Gemini API Key configured: {gemini_key[:20]}...{gemini_key[-4:]}")
         else:
             # Default to OpenAI/DeepSeek
             self.client = OpenAI(api_key=api_key, base_url=base_url)
+            logger.info(f"OpenAI/DeepSeek client initialized with base_url: {base_url}")
 
     def analyze_post(self, content):
         if self.provider == "gemini":
@@ -61,13 +67,29 @@ Output JSON format:
         else:
             return self._analyze_with_openai(content)
 
+    def _check_network_connectivity(self):
+        """Check network connectivity to Google APIs"""
+        try:
+            socket.create_connection(("generativelanguage.googleapis.com", 443), timeout=5)
+            logger.info("✓ Network connectivity check passed (Google APIs reachable)")
+        except OSError as e:
+            logger.error(f"✗ Network connectivity check failed: {e}")
+            logger.error("Cannot reach generativelanguage.googleapis.com - check your internet connection")
+    
     def _analyze_with_gemini(self, content):
         max_retries = 10
         import random
         base_wait_time = 30  # Start with 30 seconds
+        
+        # Log content preview for debugging
+        content_preview = content[:200] + "..." if len(content) > 200 else content
+        logger.debug(f"Analyzing content (preview): {content_preview}")
+        logger.info(f"Content length: {len(content)} characters")
 
         for attempt in range(max_retries):
             try:
+                logger.debug(f"Sending request to Gemini API (attempt {attempt + 1}/{max_retries})...")
+                
                 response = self.gemini_client.models.generate_content(
                     model=self.gemini_model,
                     contents=content,
@@ -76,26 +98,43 @@ Output JSON format:
                         response_mime_type="application/json"
                     )
                 )
+                
+                # Log response details
+                logger.debug(f"Received response from Gemini API")
+                
                 # Google GenAI SDK returns text in response.text
                 text = response.text
+                logger.debug(f"Response text (preview): {text[:200]}..." if len(text) > 200 else f"Response text: {text}")
+                
                 result = json.loads(text)
+                logger.info(f"✓ Successfully parsed JSON response: is_valuable={result.get('is_valuable')}, ticker={result.get('ticker')}")
                 return result
+                
+            except json.JSONDecodeError as e:
+                logger.error(f"JSON decode error: {e}")
+                logger.error(f"Raw response text: {text}")
+                return None
             except Exception as e:
                 error_str = str(e)
+                logger.error(f"Exception type: {type(e).__name__}")
+                logger.error(f"Exception details: {error_str}")
+                
                 if "429" in error_str or "quota" in error_str.lower() or "resource_exhausted" in error_str.lower():
                     if attempt < max_retries - 1:
                         # Add jitter: +/- 20% of base_wait_time
                         jitter = random.uniform(0.8, 1.2)
                         wait_time = base_wait_time * jitter
-                        logger.warning(f"Gemini 429 Quota Exceeded. Retrying in {wait_time:.1f}s... (Attempt {attempt + 1}/{max_retries})")
+                        logger.warning(f"⚠ Gemini 429 Quota Exceeded. Retrying in {wait_time:.1f}s... (Attempt {attempt + 1}/{max_retries})")
+                        logger.warning(f"Rate limit hit - consider increasing GEMINI_REQUEST_DELAY")
                         time.sleep(wait_time)
                         base_wait_time *= 2  # Exponential backoff
                         continue
                     else:
-                        logger.error(f"Gemini analysis failed after {max_retries} attempts due to quota. Please check your plan.")
+                        logger.error(f"✗ Gemini analysis failed after {max_retries} attempts due to quota.")
+                        logger.error(f"Suggestion: Increase GEMINI_REQUEST_DELAY or check your API quota")
                         return None
                 else:
-                    logger.error(f"Gemini analysis failed: {e}")
+                    logger.error(f"✗ Gemini analysis failed: {e}")
                     return None
 
     def _analyze_with_openai(self, content):

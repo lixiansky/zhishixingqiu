@@ -84,15 +84,32 @@ def main():
     
     for idx, (pid, content, url, author, create_time, section_name) in enumerate(unanalyzed, 1):
         logger.info(f"[{idx}/{len(unanalyzed)}] Analyzing post {pid}...")
+        logger.info(f"  Post ID: {pid}")
+        logger.info(f"  Author: {author}")
+        logger.info(f"  Section: {section_name}")
+        logger.info(f"  URL: {url}")
+        logger.info(f"  Content length: {len(content)} chars")
+        
+        # Log content preview
+        content_preview = content[:300] + "..." if len(content) > 300 else content
+        logger.debug(f"  Content preview: {content_preview}")
         
         try:
             # 速率限制
             rate_limiter.wait()
             
             # AI分析
+            logger.info(f"  Sending to AI analyzer...")
             analysis = analyzer.analyze_post(content)
             
             if analysis:
+                logger.info(f"  ✓ Analysis successful!")
+                logger.info(f"    - is_valuable: {analysis.get('is_valuable')}")
+                logger.info(f"    - ticker: {analysis.get('ticker', '无')}")
+                logger.info(f"    - suggestion: {analysis.get('suggestion', '无')}")
+                logger.info(f"    - logic: {analysis.get('logic', '无')[:100]}..." if len(analysis.get('logic', '')) > 100 else f"    - logic: {analysis.get('logic', '无')}")
+                logger.info(f"    - ai_summary: {analysis.get('ai_summary', '无')}")
+                
                 # 更新数据库
                 db.update_analysis(
                     pid,
@@ -102,11 +119,12 @@ def main():
                     analysis.get('ai_summary', '无')
                 )
                 success_count += 1
+                logger.info(f"  ✓ Database updated for post {pid}")
                 
                 # 发送通知(如果有价值)
                 if analysis.get('is_valuable'):
                     valuable_count += 1
-                    logger.info(f"Valuable info found in post {pid}, sending notification.")
+                    logger.info(f"  📢 Valuable info found! Sending DingTalk notification...")
                     notifier.notify_investment_report(
                         url,
                         analysis.get('ticker'),
@@ -117,10 +135,11 @@ def main():
                         create_time=create_time,
                         section_name=section_name
                     )
+                    logger.info(f"  ✓ Notification sent")
                 else:
-                    logger.info(f"Post {pid} analyzed but not valuable.")
+                    logger.info(f"  ℹ Post {pid} analyzed but not valuable (no notification sent)")
             else:
-                logger.warning(f"Failed to analyze post {pid}")
+                logger.warning(f"  ✗ Failed to analyze post {pid} - analyzer returned None")
                 
         except Exception as e:
             logger.error(f"Error analyzing post {pid}: {e}")
