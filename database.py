@@ -95,8 +95,10 @@ class Database:
                     VALUES (?, ?, ?, ?, ?, ?)
                 '''
                 cursor.execute(self._prepare_query(query), (post_id, content, author, create_time, url, section_name))
+                conn.commit()
                 return True
-        except (sqlite3.IntegrityError, psycopg2.IntegrityError):
+        except (sqlite3.IntegrityError, psycopg2.IntegrityError, Exception):
+            conn.rollback()
             return False
         finally:
             conn.close()
@@ -138,6 +140,10 @@ class Database:
                     WHERE id = ?
                 '''
                 cursor.execute(self._prepare_query(query), (ticker, suggestion, logic, ai_summary, post_id))
+                conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
         finally:
             conn.close()
 
@@ -153,6 +159,10 @@ class Database:
                     WHERE id = ?
                 '''
                 cursor.execute(self._prepare_query(query), (content, post_id))
+                conn.commit()
                 return cursor.rowcount > 0
+        except Exception:
+            conn.rollback()
+            raise
         finally:
             conn.close()
