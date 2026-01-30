@@ -1,8 +1,8 @@
 name: ZSXQ Monitor
 on:
   schedule:
-    # 每30分钟运行一次（降低频率，节省API配额）
-    - cron: '*/30 * * * *'
+    # 每10分钟运行一次（实时监控，DeepSeek API 无并发限制）
+    - cron: '*/10 * * * *'
   workflow_dispatch:
 
 jobs:
