@@ -81,7 +81,7 @@ class ZsxqCrawler:
             content = talk.get('text', '')
             author = talk.get('owner', {}).get('name', 'Unknown')
             create_time = t.get('create_time')
-            url_link = f"https://wx.zsxq.com/group/{group_id}/{topic_id}"
+            url_link = f"https://wx.zsxq.com/dweb2/index/group/{group_id}/topic/{topic_id}"
             
             # Simple fallback for content
             if not content:
@@ -118,7 +118,7 @@ class ZsxqCrawler:
             content = talk.get('text', '')
             author = talk.get('owner', {}).get('name', 'Unknown')
             create_time = t.get('create_time')
-            url_link = f"https://wx.zsxq.com/group/{group_id}/{topic_id}"
+            url_link = f"https://wx.zsxq.com/dweb2/index/group/{group_id}/topic/{topic_id}"
             
             # Simple fallback for content
             if not content:
@@ -208,7 +208,7 @@ class ZsxqCrawler:
             answer = q_and_a.get('answer', {}).get('text', '')
             author = q_and_a.get('answer', {}).get('owner', {}).get('name', 'Unknown')
             create_time = t.get('create_time')
-            url_link = f"https://wx.zsxq.com/group/{group_id}/{topic_id}"
+            url_link = f"https://wx.zsxq.com/dweb2/index/group/{group_id}/topic/{topic_id}"
             
             content = f"[问答]\n问：{question}\n答：{answer}"
             
