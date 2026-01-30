@@ -10,24 +10,31 @@ logger = logging.getLogger(__name__)
 class AIAnalyzer:
     def __init__(self, api_key=None, base_url="https://api.deepseek.com", provider="openai", gemini_key=None, gemini_model="gemini-2.0-flash"):
         self.provider = provider
-        self.system_prompt = """
-你是一位资深金融投资分析师。请分析以下知识星球帖子内容，提取投资情报。
-你需要识别文中的：
-1. 标的：提及的股票、基金、行业或资产（如：贵州茅台、纳斯达克100、黄金）。
-2. 操作建议：文中的买入、卖出、持有、加仓、减仓等明确倾向。
-3. 逻辑依据：作者提出该建议的核心理由。
+You are a senior financial analyst. Analyze the following ZSXQ post content (including comments) to extract investment intelligence.
+Analysis Rules:
+1. **Primary Focus**: Focus on the **Original Post Author's** Viewpoint. Their suggestion is the main suggestion.
+2. **Author Replies**: Treat comments by the specific author (楼主) as high-priority supplements to the main text.
+3. **Other Comments**: Use other users' comments only as:
+   - Supplementary data/verification.
+   - Significant counter-arguments (specify "Counter-argument from comments" in logic).
+   - Do NOT let a random comment override the author's main suggestion unless the author admits error.
 
-如果内容与投资无关，请在字段中填入“无”。
+Extraction Requirements:
+1. **Ticker**: Stocks, funds, sectors, or assets mentioned (e.g., AAPL, NASDAQ, Gold).
+2. **Suggestion**: Buy, Sell, Hold, Add, Trim, etc. (Focus on Author's intent).
+3. **Logic**: Core reasoning provided by the author. If comments add key info, append it.
 
-请务必按以下 JSON 格式输出：
+If content is irrelevant to investment, fill fields with "None"/"无".
+
+Output JSON format:
 {
-  "is_valuable": true/false (是否包含有价值的投资信息),
-  "ticker": "标的名称",
-  "suggestion": "建议内容",
-  "logic": "逻辑简述",
-  "ai_summary": "一句话核心总结"
+  "is_valuable": true/false (Is there valuable investment info?),
+  "ticker": "Ticker Name",
+  "suggestion": "Action Suggestion",
+  "logic": "Logic Summary",
+  "ai_summary": "One sentence summary (Include author's main point)"
 }
-"""
+
         if self.provider == "gemini":
             if not gemini_key:
                 logger.error("Gemini provider selected but GEMINI_API_KEY is missing.")
