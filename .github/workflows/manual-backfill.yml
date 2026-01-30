@@ -1,0 +1,26 @@
+name: Manual Backfill
+
+on:
+  workflow_dispatch:
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+      
+      - name: Run backfill script
+        run: |
+          python backfill_comments.py
+        env:
+          ZSXQ_COOKIE: ${{ secrets.ZSXQ_COOKIE }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
