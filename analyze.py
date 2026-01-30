@@ -35,6 +35,30 @@ class RateLimiter:
             time.sleep(wait_time)
         self.last_request = time.time()
 
+def is_valid_post(pid, content, author, section_name):
+    """验证帖子数据是否有效"""
+    # 过滤无效 ID
+    if not pid or pid == "file_None" or "None" in str(pid):
+        logger.warning(f"Invalid post ID: {pid}")
+        return False
+    
+    # 过滤空内容或内容过短
+    if not content or len(content.strip()) < 50:
+        logger.warning(f"Content too short for post {pid}: {len(content) if content else 0} chars")
+        return False
+    
+    # 过滤文件分享页面（通常内容很短且无实际投资信息）
+    if section_name == "文件分享" and len(content) < 100:
+        logger.warning(f"Skipping file sharing post {pid} with short content")
+        return False
+    
+    # 过滤未知作者且内容过短的帖子
+    if author == "Unknown" and len(content) < 200:
+        logger.warning(f"Skipping unknown author post {pid} with short content")
+        return False
+    
+    return True
+
 def main():
     # 配置
     ai_api_key = os.getenv("AI_API_KEY")
@@ -83,7 +107,16 @@ def main():
     valuable_count = 0
     
     for idx, (pid, content, url, author, create_time, section_name) in enumerate(unanalyzed, 1):
-        logger.info(f"[{idx}/{len(unanalyzed)}] Analyzing post {pid}...")
+        logger.info(f"[{idx}/{len(unanalyzed)}] Processing post {pid}...")
+        
+        # 数据验证
+        if not is_valid_post(pid, content, author, section_name):
+            logger.info(f"  ⊘ Skipped invalid post {pid}")
+            # 标记为已分析（避免重复处理）
+            db.update_analysis(pid, "无效数据", "跳过", "数据验证失败", "此帖子数据无效，已跳过分析")
+            continue
+        
+        logger.info(f"  ✓ Post validation passed")
         logger.info(f"  Post ID: {pid}")
         logger.info(f"  Author: {author}")
         logger.info(f"  Section: {section_name}")
