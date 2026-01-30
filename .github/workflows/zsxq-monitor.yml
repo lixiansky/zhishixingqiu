@@ -26,8 +26,13 @@ jobs:
           ZSXQ_COOKIE: ${{ secrets.ZSXQ_COOKIE }}
           AUTO_ANALYZE_AFTER_CRAWL: 'true'
           AI_PROVIDER: ${{ secrets.AI_PROVIDER }}
+          # Gemini API
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_MODEL: ${{ secrets.GEMINI_MODEL }}
+          # OpenAI/DeepSeek API
+          AI_API_KEY: ${{ secrets.AI_API_KEY }}
+          AI_BASE_URL: ${{ secrets.AI_BASE_URL }}
+          # Analysis settings
           MAX_POSTS_PER_RUN: '10'
           AI_REQUESTS_PER_MINUTE: '15'
           DINGTALK_WEBHOOK: ${{ secrets.DINGTALK_WEBHOOK }}

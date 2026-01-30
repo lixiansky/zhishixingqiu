@@ -24,8 +24,13 @@ jobs:
           python analyze.py
         env:
           AI_PROVIDER: ${{ secrets.AI_PROVIDER }}
+          # Gemini API
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_MODEL: ${{ secrets.GEMINI_MODEL }}
+          # OpenAI/DeepSeek API
+          AI_API_KEY: ${{ secrets.AI_API_KEY }}
+          AI_BASE_URL: ${{ secrets.AI_BASE_URL }}
+          # Analysis settings
           MAX_POSTS_PER_RUN: '20'  # 手动运行时可以处理更多
           AI_REQUESTS_PER_MINUTE: '10'
           STAR_OWNER_NAME: ${{ secrets.STAR_OWNER_NAME }} # Optional, defaults to pure日月
