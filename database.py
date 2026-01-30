@@ -140,3 +140,19 @@ class Database:
                 cursor.execute(self._prepare_query(query), (ticker, suggestion, logic, ai_summary, post_id))
         finally:
             conn.close()
+
+    def update_post_content(self, post_id, content):
+        """更新帖子内容并重置分析状态"""
+        conn = self._get_conn()
+        try:
+            with conn: # Assuming transaction managed by context or autocommit behavior if configured, but _create_table needed explicit. Let's be safe and adhere to consistent pattern.
+                cursor = conn.cursor()
+                query = '''
+                    UPDATE investment_posts
+                    SET content = ?, is_analyzed = 0 
+                    WHERE id = ?
+                '''
+                cursor.execute(self._prepare_query(query), (content, post_id))
+                return cursor.rowcount > 0
+        finally:
+            conn.close()
