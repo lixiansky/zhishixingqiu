@@ -1,8 +1,11 @@
 name: AI Analysis Only
 on:
-  workflow_dispatch:  # 仅手动触发
+  workflow_dispatch:  # 手动触发
   schedule:
-    - cron: '0 2 * * *'  # 可选: 每天凌晨2点额外运行一次
+    # 每天早上8点（UTC 0点，北京时间8:00）- 处理夜间可能遗漏的帖子
+    - cron: '0 0 * * *'
+    # 每天晚上8点（UTC 12点，北京时间20:00）- 处理白天可能遗漏的帖子
+    - cron: '0 12 * * *'
 
 jobs:
   analyze:
