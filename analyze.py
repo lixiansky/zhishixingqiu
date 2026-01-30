@@ -49,7 +49,7 @@ def main():
     
     # 速率控制配置
     max_posts_per_run = int(os.getenv("MAX_POSTS_PER_RUN", "10"))
-    requests_per_minute = int(os.getenv("AI_REQUESTS_PER_MINUTE", "15"))
+    requests_per_minute = int(os.getenv("AI_REQUESTS_PER_MINUTE", "10"))
     
     # 初始化
     db = Database()
