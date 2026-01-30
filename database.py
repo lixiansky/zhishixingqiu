@@ -36,39 +36,41 @@ class Database:
     def _create_table(self):
         conn = self._get_conn()
         try:
-            with conn: # Transaction context
-                cursor = conn.cursor()
-                query = '''
-                    CREATE TABLE IF NOT EXISTS investment_posts (
-                        id TEXT PRIMARY KEY,
-                        content TEXT,
-                        author TEXT,
-                        create_time TEXT,
-                        url TEXT,
-                        section_name TEXT,
-                        is_analyzed INTEGER DEFAULT 0,
-                        ticker TEXT,
-                        suggestion TEXT,
-                        logic TEXT,
-                        ai_summary TEXT
-                    )
-                '''
-                cursor.execute(self._prepare_query(query))
-                
-                # Migration: Add section_name column if it doesn't exist
-                # This logic is tricky across DBs. 
-                # For PG, we can check information_schema or just try/catch safely.
-                # For SQLite, pragma.
-                
-                # To keep it simple and robust:
-                try:
-                    alter_query = "ALTER TABLE investment_posts ADD COLUMN section_name TEXT"
-                    cursor.execute(self._prepare_query(alter_query))
-                    logger.info("Added section_name column to existing table")
-                except (sqlite3.OperationalError, psycopg2.errors.DuplicateColumn, psycopg2.ProgrammingError) as e:
-                    # Ignore if column exists
-                    # psycopg2 throws DuplicateColumn or ProgrammingError depending on version/context
-                    pass
+            cursor = conn.cursor()
+            query = '''
+                CREATE TABLE IF NOT EXISTS investment_posts (
+                    id TEXT PRIMARY KEY,
+                    content TEXT,
+                    author TEXT,
+                    create_time TEXT,
+                    url TEXT,
+                    section_name TEXT,
+                    is_analyzed INTEGER DEFAULT 0,
+                    ticker TEXT,
+                    suggestion TEXT,
+                    logic TEXT,
+                    ai_summary TEXT
+                )
+            '''
+            cursor.execute(self._prepare_query(query))
+            conn.commit()  # Explicit commit for both SQLite and PostgreSQL
+            
+            # Migration: Add section_name column if it doesn't exist
+            try:
+                alter_query = "ALTER TABLE investment_posts ADD COLUMN section_name TEXT"
+                cursor.execute(self._prepare_query(alter_query))
+                conn.commit()
+                logger.info("Added section_name column to existing table")
+            except Exception as e:
+                # Ignore if column exists or any other error
+                # For PostgreSQL, this might be DuplicateColumn
+                # For SQLite, this might be OperationalError
+                conn.rollback()  # Rollback the failed ALTER
+                pass
+        except Exception as e:
+            logger.error(f"Error creating table: {e}")
+            conn.rollback()
+            raise
         finally:
             conn.close()
 
