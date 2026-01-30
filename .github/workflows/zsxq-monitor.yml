@@ -1,7 +1,8 @@
 name: ZSXQ Monitor
 on:
   schedule:
-    - cron: '*/10 * * * *'  # 每10分钟运行
+    # 每30分钟运行一次（降低频率，节省API配额）
+    - cron: '*/30 * * * *'
   workflow_dispatch:
 
 jobs:
