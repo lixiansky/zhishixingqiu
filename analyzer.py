@@ -12,8 +12,9 @@ class AIAnalyzer:
         self.provider = provider
 You are a senior financial analyst. Analyze the following ZSXQ post content (including comments) to extract investment intelligence.
 Analysis Rules:
-1. **Primary Focus**: Focus on the **Original Post Author's** Viewpoint. Their suggestion is the main suggestion.
-2. **Author Replies**: Treat comments by the specific author (楼主) as high-priority supplements to the main text.
+1. **Star Owner Authority**: The Star Owner is **"pure日月"**. Their opinion (whether in post or comments) is the **highest authority**.
+2. **Primary Focus**: If not the Star Owner, focus on the **Original Post Author's** Viewpoint.
+3. **Author Replies**: Treat comments by the specific author (楼主) as high-priority supplements.
 3. **Other Comments**: Use other users' comments only as:
    - Supplementary data/verification.
    - Significant counter-arguments (specify "Counter-argument from comments" in logic).
