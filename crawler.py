@@ -41,6 +41,43 @@ class ZsxqCrawler:
             logger.error(f"Error fetching {url}: {e}")
             return None
 
+    def get_user_groups(self):
+        """获取用户加入的所有星球列表"""
+        url = "https://api.zsxq.com/v2/groups"
+        data = self._fetch_api(url)
+        if not data or not data.get('succeeded'):
+            return []
+        
+        resp = data.get('resp') or data.get('resp_data') or {}
+        groups = resp.get('groups', [])
+        
+        result = []
+        for group in groups:
+            result.append({
+                'group_id': group.get('group_id'),
+                'name': group.get('name'),
+                'type': group.get('type')
+            })
+        
+        logger.info(f"Found {len(result)} groups")
+        for g in result:
+            logger.info(f"  - {g['name']} (ID: {g['group_id']})")
+        
+        return result
+    
+    @staticmethod
+    def extract_group_id_from_url(url):
+        """从知识星球 URL 中提取 group_id
+        支持格式:
+        - https://wx.zsxq.com/dweb2/index/group/15555442414282
+        - https://wx.zsxq.com/group/15555442414282
+        """
+        import re
+        match = re.search(r'/group/([0-9]+)', url)
+        if match:
+            return match.group(1)
+        return None
+
     def _extract_comments(self, topic):
         """提取帖子的回复信息"""
         # 尝试多个可能的字段名

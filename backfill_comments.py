@@ -76,5 +76,39 @@ def backfill_data(group_id: str):
     logger.info(f"New posts added: {new_count}")
 
 if __name__ == "__main__":
-    GROUP_ID = "15555442414282"  # Hardcoded from crawl.py known ID
-    backfill_data(GROUP_ID)
+    # 初始化
+    cookie = os.getenv('ZSXQ_COOKIE')
+    ding_url = os.getenv("DINGTALK_WEBHOOK")
+    ding_secret = os.getenv("DINGTALK_SECRET")
+    
+    if not cookie:
+        logger.error("ZSXQ_COOKIE not found in .env")
+        sys.exit(1)
+    
+    notifier = Notifier(ding_url, ding_secret)
+    crawler = ZsxqCrawler(cookie, notifier)
+    
+    # 动态获取 group_id (使用与 crawl.py 相同的逻辑)
+    try:
+        group_id = os.getenv("ZSXQ_GROUP_ID")
+        if not group_id:
+            group_url = os.getenv("ZSXQ_GROUP_URL")
+            if group_url:
+                group_id = ZsxqCrawler.extract_group_id_from_url(group_url)
+        
+        if not group_id:
+            logger.info("未配置 group_id，尝试自动获取...")
+            groups = crawler.get_user_groups()
+            if groups:
+                group_id = groups[0]['group_id']
+                logger.info(f"自动选择第一个星球: {groups[0]['name']} (ID: {group_id})")
+        
+        if not group_id:
+            logger.error("无法获取 group_id，请配置 ZSXQ_GROUP_ID 或 ZSXQ_GROUP_URL")
+            sys.exit(1)
+            
+        backfill_data(group_id)
+    except Exception as e:
+        logger.error(f"Error: {e}", exc_info=True)
+        sys.exit(1)
+

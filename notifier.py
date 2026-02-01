@@ -77,6 +77,30 @@ class Notifier:
         title = "⚠️ 知识星球 Cookie 失效"
         content = "### ⚠️ 知识星球监控告警\n**状态：** Cookie 已失效 (401/403)\n**建议：** 请立即手动更新 `ZSXQ_COOKIE` 环境变量并重启程序。"
         self.send_markdown(title, content)
+    
+    def notify_error(self, error_type, error_message, details=None):
+        """发送错误通知到钉钉
+        
+        Args:
+            error_type: 错误类型 (如 "配置错误", "API错误", "数据库错误")
+            error_message: 错误信息
+            details: 详细信息 (可选)
+        """
+        title = f"⚠️ 知识星球监控错误: {error_type}"
+        
+        content = f"""### ⚠️ 程序运行错误
+
+**错误类型:** {error_type}
+
+**错误信息:** {error_message}
+"""
+        
+        if details:
+            content += f"\n**详细信息:**\n```\n{details}\n```"
+        
+        content += "\n\n**建议:** 请检查日志文件获取更多信息，并根据错误类型进行相应处理。"
+        
+        self.send_markdown(title, content)
 
     def notify_investment_report(self, url, ticker, suggestion, logic, ai_summary, author=None, create_time=None, section_name=None):
         title = "📊 星球最新投资情报"

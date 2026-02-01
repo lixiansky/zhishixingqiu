@@ -18,6 +18,48 @@ logging.basicConfig(
 )
 logger = logging.getLogger("Crawler")
 
+def get_group_id(crawler, notifier):
+    """动态获取 group_id (与 main.py 中的实现相同)"""
+    try:
+        group_id = os.getenv("ZSXQ_GROUP_ID")
+        if group_id:
+            logger.info(f"使用配置的 group_id: {group_id}")
+            return group_id
+        
+        group_url = os.getenv("ZSXQ_GROUP_URL")
+        if group_url:
+            group_id = ZsxqCrawler.extract_group_id_from_url(group_url)
+            if group_id:
+                logger.info(f"从 URL 提取 group_id: {group_id}")
+                return group_id
+            else:
+                error_msg = f"无法从 URL 中提取 group_id: {group_url}"
+                logger.error(error_msg)
+                notifier.notify_error("配置错误", error_msg, 
+                    "请检查 ZSXQ_GROUP_URL 格式是否正确\n支持格式:\n- https://wx.zsxq.com/dweb2/index/group/[ID]\n- https://wx.zsxq.com/group/[ID]")
+                return None
+        
+        logger.info("未配置 group_id，尝试自动获取...")
+        groups = crawler.get_user_groups()
+        
+        if not groups:
+            error_msg = "无法获取星球列表，可能是 Cookie 失效或网络问题"
+            logger.error(error_msg)
+            notifier.notify_error("API错误", error_msg,
+                "请检查:\n1. ZSXQ_COOKIE 是否有效\n2. 网络连接是否正常\n3. 是否至少加入了一个星球")
+            return None
+        
+        group_id = groups[0]['group_id']
+        logger.info(f"自动选择第一个星球: {groups[0]['name']} (ID: {group_id})")
+        return group_id
+        
+    except Exception as e:
+        error_msg = f"获取 group_id 时发生异常: {str(e)}"
+        logger.error(error_msg, exc_info=True)
+        notifier.notify_error("系统错误", error_msg, 
+            f"异常类型: {type(e).__name__}\n请查看日志文件获取详细堆栈信息")
+        return None
+
 def fetch_all_data(crawler, group_id):
     """抓取所有数据源"""
     fetched_data = []
@@ -67,7 +109,6 @@ def main():
     cookie = os.getenv("ZSXQ_COOKIE")
     ding_url = os.getenv("DINGTALK_WEBHOOK")
     ding_secret = os.getenv("DINGTALK_SECRET")
-    group_id = "15555442414282"
     auto_analyze = os.getenv("AUTO_ANALYZE_AFTER_CRAWL", "true").lower() == "true"
     
     if not cookie:
@@ -77,6 +118,12 @@ def main():
     db = Database()
     notifier = Notifier(ding_url, ding_secret)
     crawler = ZsxqCrawler(cookie, notifier)
+    
+    # 动态获取 group_id
+    group_id = get_group_id(crawler, notifier)
+    if not group_id:
+        logger.error("无法获取 group_id，程序退出")
+        return 1
     
     logger.info("Starting crawl cycle...")
     
