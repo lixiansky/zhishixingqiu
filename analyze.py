@@ -66,7 +66,7 @@ def main():
     ai_provider = os.getenv("AI_PROVIDER", "openai")
     gemini_key = os.getenv("GEMINI_API_KEY")
     gemini_model = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
-    star_owner_name = os.getenv("STAR_OWNER_NAME", "pure日月")
+    star_owner_name = os.getenv("STAR_OWNER_NAME")
     
     ding_url = os.getenv("DINGTALK_WEBHOOK")
     ding_secret = os.getenv("DINGTALK_SECRET")

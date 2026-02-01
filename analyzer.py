@@ -9,7 +9,7 @@ import socket
 logger = logging.getLogger(__name__)
 
 class AIAnalyzer:
-    def __init__(self, api_key=None, base_url="https://api.deepseek.com", provider="openai", gemini_key=None, gemini_model="gemini-2.0-flash", star_owner_name="pure日月"):
+    def __init__(self, api_key=None, base_url="https://api.deepseek.com", provider="openai", gemini_key=None, gemini_model="gemini-2.0-flash", star_owner_name=None):
         self.provider = provider
         self.star_owner_name = star_owner_name
         self.system_prompt = f"""

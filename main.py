@@ -34,6 +34,7 @@ def run_task():
     gemini_model = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
     # Default to 15 seconds to be safe within 15 RPM limit (1 req / 4 sec + buffer)
     request_delay = int(os.getenv("GEMINI_REQUEST_DELAY", "5"))
+    star_owner_name = os.getenv("STAR_OWNER_NAME")
     
     group_id = "15555442414282"  # Based on the user's provided URLs
 
@@ -44,7 +45,7 @@ def run_task():
     db = Database()
     notifier = Notifier(ding_url, ding_secret)
     crawler = ZsxqCrawler(cookie, notifier)
-    analyzer = AIAnalyzer(ai_api_key, ai_base_url, provider=ai_provider, gemini_key=gemini_key, gemini_model=gemini_model)
+    analyzer = AIAnalyzer(ai_api_key, ai_base_url, provider=ai_provider, gemini_key=gemini_key, gemini_model=gemini_model, star_owner_name=star_owner_name)
 
     logger.info("Starting crawl cycle...")
 

@@ -54,8 +54,8 @@ GEMINI_REQUEST_DELAY=15                 # 请求间隔(秒),避免触发速率�
 # AI_API_KEY=sk-xxxxxx
 # AI_BASE_URL=https://api.deepseek.com
 
-# 星球主名称配置 (可选,默认为 "pure日月")
-STAR_OWNER_NAME=pure日月                # AI 分析时优先采纳此用户的观点
+# 星球主名称配置 (必填,AI 分析时优先采纳此用户的观点)
+STAR_OWNER_NAME=your_star_owner_name_here  # 请修改为您的星球主名称
 ```
 
 ### 3. 获取 Cookie
@@ -102,7 +102,7 @@ python main.py
 
 - **Cookie 自动监控**:程序会自动检测 Cookie 失效(401/403),并通过钉钉发送告警通知,提醒您及时更新 `ZSXQ_COOKIE`。
 - **API 频率限制**:Gemini 免费版有速率限制(RPM),建议保留 `GEMINI_REQUEST_DELAY` 设置。
-- **星球主配置**:如果您的星球主名称不是 "pure日月",请在环境变量中设置 `STAR_OWNER_NAME`,确保 AI 正确识别权威观点。
+- **星球主配置**:必须在环境变量中设置 `STAR_OWNER_NAME` 为您的星球主名称,确保 AI 正确识别权威观点。
 - **评论深度分析**:程序会自动提取帖子评论,AI 会综合原文和评论进行分析,星球主的评论具有最高优先级。
 
 ## 📝 License
