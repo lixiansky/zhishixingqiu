@@ -69,8 +69,8 @@ class ZsxqCrawler:
     def extract_group_id_from_url(url):
         """从知识星球 URL 中提取 group_id
         支持格式:
-        - https://wx.zsxq.com/dweb2/index/group/15555442414282
-        - https://wx.zsxq.com/group/15555442414282
+        - https://wx.zsxq.com/dweb2/index/group/[group_id]
+        - https://wx.zsxq.com/group/[group_id]
         """
         import re
         match = re.search(r'/group/([0-9]+)', url)

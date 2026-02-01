@@ -43,10 +43,10 @@ DINGTALK_SECRET=your_secret_optional    # (可选) 钉钉机器人加签密钥
 
 # 知识星球配置 (三选一)
 # 方式 1: 直接配置 group_id
-ZSXQ_GROUP_ID=15555442414282
+ZSXQ_GROUP_ID=your_group_id_here
 
 # 方式 2: 配置星球主页 URL (程序会自动提取 ID)
-# ZSXQ_GROUP_URL=https://wx.zsxq.com/dweb2/index/group/15555442414282
+# ZSXQ_GROUP_URL=https://wx.zsxq.com/dweb2/index/group/your_group_id
 
 # 方式 3: 不配置，程序会自动使用您加入的第一个星球
 
