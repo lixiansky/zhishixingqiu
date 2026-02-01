@@ -1,20 +1,23 @@
 # Zhishixingqiu Monitor (知识星球监控)
 
-[![ZSXQ Monitor](https://github.com/lixiansky/zhishixingqiu/actions/workflows/zsxq_bot.yml/badge.svg)](https://github.com/lixiansky/zhishixingqiu/actions/workflows/zsxq_bot.yml)
+[![ZSXQ Monitor](https://github.com/lixiansky/zhishixingqiu/actions/workflows/zsxq-monitor.yml/badge.svg)](https://github.com/lixiansky/zhishixingqiu/actions/workflows/zsxq-monitor.yml)
 
 一个基于 Python 的知识星球监控机器人，自动抓取指定星球的最新动态（主题、专栏、文件、问答），利用 AI 进行投资价值分析，并通过钉钉发送即时通知。
 
 ## ✨ 功能特性
 
-- **多维度监控**：支持抓取星球内的普通主题、精华主题、专栏文章、文件分享及问答内容。
-- **AI 智能分析**：集成 Google Gemini (推荐) 或 OpenAI/DeepSeek 接口，自动分析帖子内容，提取：
+- **多维度监控**:支持抓取星球内的普通主题、精华主题、专栏文章、文件分享及问答内容。
+- **深度内容提取**:自动提取帖子的评论回复,结合原文和评论进行全面分析。
+- **AI 智能分析**:集成 Google Gemini (推荐) 或 OpenAI/DeepSeek 接口,自动分析帖子内容,提取:
     - **投资标的** (Ticker)
     - **操作建议** (Suggestion)
     - **核心逻辑** (Logic)
     - **一句话总结** (Summary)
-- **精准通知**：通过钉钉机器人发送 Markdown 格式的投资情报日报/即时通知。
-- **数据持久化**：使用 SQLite 数据库 (`zsxq_investment.db`) 对已处理内容去重，避免重复推送。
-- **自动化运行**：支持 GitHub Actions 定时任务（默认每小时运行一次），也可本地部署。
+    - **星球主权威识别**:可配置星球主名称,AI 优先采纳星球主观点
+- **精准通知**:通过钉钉机器人发送 Markdown 格式的投资情报日报/即时通知。
+- **智能告警**:自动检测 Cookie 失效(401/403),及时发送钉钉告警通知。
+- **数据持久化**:使用 SQLite 数据库 (`zsxq_investment.db`) 对已处理内容去重,避免重复推送。
+- **自动化运行**:支持 GitHub Actions 定时任务(默认每 10 分钟运行一次),也可本地部署。
 
 ## 🚀 快速开始
 
@@ -40,16 +43,19 @@ DINGTALK_SECRET=your_secret_optional    # (可选) 钉钉机器人加签密钥
 
 # AI 配置 (二选一)
 
-# 方案 A: Google Gemini (推荐，免费额度高)
+# 方案 A: Google Gemini (推荐,免费额度高)
 AI_PROVIDER=gemini
 GEMINI_API_KEY=your_gemini_api_key
 GEMINI_MODEL=gemini-2.0-flash
-GEMINI_REQUEST_DELAY=15                 # 请求间隔(秒)，避免触发速率限制
+GEMINI_REQUEST_DELAY=15                 # 请求间隔(秒),避免触发速率限制
 
 # 方案 B: OpenAI / DeepSeek
 # AI_PROVIDER=openai
 # AI_API_KEY=sk-xxxxxx
 # AI_BASE_URL=https://api.deepseek.com
+
+# 星球主名称配置 (可选,默认为 "pure日月")
+STAR_OWNER_NAME=pure日月                # AI 分析时优先采纳此用户的观点
 ```
 
 ### 3. 获取 Cookie
@@ -83,17 +89,21 @@ python main.py
 
 ## 🛠️ 项目结构
 
-- `main.py`: 程序入口，负责调度爬虫、分析器和通知器。
-- `crawler.py`: 负责与知识星球 API 交互，获取各类数据。
-- `analyzer.py`: 调用 AI 接口 (Gemini/OpenAI) 分析文本价值。
-- `notifier.py`: 处理钉钉消息格式化与发送。
-- `database.py`: SQLite 数据库操作，管理历史记录。
-- `.github/workflows/zsxq_bot.yml`: GitHub Actions 定时任务配置。
+- `main.py`: 程序入口,负责调度爬虫、分析器和通知器。
+- `crawler.py`: 负责与知识星球 API 交互,获取各类数据(含评论提取和 Cookie 过期检测)。
+- `analyzer.py`: 调用 AI 接口 (Gemini/OpenAI) 分析文本价值,支持星球主权威识别。
+- `notifier.py`: 处理钉钉消息格式化与发送,包括 Cookie 过期告警。
+- `database.py`: SQLite/PostgreSQL 数据库操作,管理历史记录。
+- `.github/workflows/zsxq-monitor.yml`: GitHub Actions 主监控工作流(每 10 分钟)。
+- `.github/workflows/analyze-only.yml`: 仅分析工作流(每 6 小时)。
+- `.github/workflows/manual-backfill.yml`: 手动回填评论工作流。
 
 ## ⚠️ 注意事项
 
-- **Cookie 有效期**：知识星球 Cookie 会定期失效，若程序报错 401/403，请更新 Secret 中的 Cookie。
-- **API 频率限制**：Gemini 免费版有速率限制（RPM），建议保留 `GEMINI_REQUEST_DELAY` 设置。
+- **Cookie 自动监控**:程序会自动检测 Cookie 失效(401/403),并通过钉钉发送告警通知,提醒您及时更新 `ZSXQ_COOKIE`。
+- **API 频率限制**:Gemini 免费版有速率限制(RPM),建议保留 `GEMINI_REQUEST_DELAY` 设置。
+- **星球主配置**:如果您的星球主名称不是 "pure日月",请在环境变量中设置 `STAR_OWNER_NAME`,确保 AI 正确识别权威观点。
+- **评论深度分析**:程序会自动提取帖子评论,AI 会综合原文和评论进行分析,星球主的评论具有最高优先级。
 
 ## 📝 License
 
