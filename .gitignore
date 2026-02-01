@@ -8,38 +8,6 @@
 
 # Logs
 *.log
-analyze.log
-crawl.log
-zsxq.log
-research.log
-research_utf8.log
-
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-
-# Virtual Environment
-venv/
-env/
-.venv/
-
-# IDEs
-# Environment variables
-.env
-
-# Database files
-*.db
-*.sqlite
-*.sqlite3
-
-# Logs
-*.log
-analyze.log
-crawl.log
-zsxq.log
-research.log
-research_utf8.log
 
 # Python
 __pycache__/
