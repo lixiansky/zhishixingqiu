@@ -18,7 +18,7 @@
 - **精准通知**:通过钉钉机器人发送 Markdown 格式的投资情报日报/即时通知。
 - **智能告警**:自动检测 Cookie 失效(401/403)及配置错误,及时发送钉钉告警通知。
 - **数据持久化**:使用 SQLite 数据库 (`zsxq_investment.db`) 对已处理内容去重,避免重复推送。
-- **自动化运行**:支持 GitHub Actions 定时任务(默认每 10 分钟运行一次),也可本地部署。
+- **自动化运行**:支持 GitHub Actions 定时任务(默认白天每 20 分钟, 晚间每 1 小时),也可本地部署。
 
 ## 🚀 快速开始
 
@@ -121,7 +121,7 @@ python main.py
 - `analyzer.py`: 调用 AI 接口 (Gemini/OpenAI) 分析文本价值,支持星球主权威识别。
 - `notifier.py`: 处理钉钉消息格式化与发送,包括 Cookie 过期告警。
 - `database.py`: SQLite/PostgreSQL 数据库操作,管理历史记录。
-- `.github/workflows/zsxq-monitor.yml`: GitHub Actions 主监控工作流(每 10 分钟)。
+- `.github/workflows/zsxq-monitor.yml`: GitHub Actions 主监控工作流(白天每 20 分钟, 晚间每 1 小时)。
 - `.github/workflows/analyze-only.yml`: 仅分析工作流(每 6 小时)。
 - `.github/workflows/manual-backfill.yml`: 手动回填评论工作流。
 
