@@ -25,6 +25,7 @@ jobs:
           python crawl.py
         env:
           ZSXQ_COOKIE: ${{ secrets.ZSXQ_COOKIE }}
+          ZSXQ_GROUP_ID: ${{ secrets.ZSXQ_GROUP_ID }}
           AUTO_ANALYZE_AFTER_CRAWL: 'true'
           AI_PROVIDER: ${{ secrets.AI_PROVIDER }}
           # Gemini API
